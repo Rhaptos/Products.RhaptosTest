@@ -10,4 +10,6 @@ Products.RhaptosTest.egg-info/not-zip-safe
 Products.RhaptosTest.egg-info/requires.txt
 Products.RhaptosTest.egg-info/top_level.txt
 Products/RhaptosTest/__init__.py
-Products/RhaptosTest/example/__init__.py
+Products/RhaptosTest/base.py
+Products/RhaptosTest/patch_zope_testing.py
+docs/HISTORY.txt
