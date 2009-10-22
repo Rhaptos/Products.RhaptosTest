@@ -24,6 +24,7 @@ $Id: $
 """
 
 
+# Subtle: Monkey patch zope.testing by importing this module:
 import patch_zope_testing
 
 from Products.CMFPlone.tests import PloneTestCase
@@ -32,6 +33,22 @@ from Products.Five import zcml
 from Products.PloneTestCase.layer import PloneSite
 from Testing import ZopeTestCase
 
+
+# PRODUCTS_TO_LOAD_ZCML is a list of tuples representing ZCML files to load,
+# and which products to load them from.  PRODUCTS_TO_INSTALL is a list
+# representing products to install.  A subtle difference in these lists is that
+# in PRODUCTS_TO_LOAD_ZCML, products are specified as actual modules, whereas
+# in PRODUCTS_TO_INSTALL, products are specified as strings.
+#
+#   import Products.RhaptosBugTrackingTool
+#   from Products.RhaptosTest import base
+#
+#   base.PRODUCTS_TO_LOAD_ZCML = [('configure.zcml', Products.RhaptosBugTrackingTool),]
+#   base.PRODUCTS_TO_INSTALL = ['RhaptosBugTrackingTool']
+#
+#   class TestRhaptosBugTrackingTool(base.RhaptosTestCase):
+#       def test_pass(self):
+#           pass
 
 PRODUCTS_TO_LOAD_ZCML = []
 PRODUCTS_TO_INSTALL = []

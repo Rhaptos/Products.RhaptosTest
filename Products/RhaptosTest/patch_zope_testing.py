@@ -37,6 +37,7 @@ def format_exception(t, v, tb, limit=None):
         limit=None)
     return fmt.formatException(t, v, tb)
 
+# Subtle: We monkey patch zope.testing whenever anyone imports this module.
 _log.warning('*** monkey patching zope.testing ***')
 from zope.testing.testrunner import tb_format
 tb_format.format_exception = format_exception
