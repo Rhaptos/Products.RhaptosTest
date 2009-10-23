@@ -27,40 +27,28 @@ $Id: $
 # Subtle: Monkey patch zope.testing by importing this module:
 import patch_zope_testing
 
-from Products.CMFPlone.tests import PloneTestCase
+from Products.CMFPlone.tests.PloneTestCase import PloneTestCase
 from Products.Five import fiveconfigure
 from Products.Five import zcml
 from Products.PloneTestCase.layer import PloneSite
 from Testing import ZopeTestCase
 
 
-# PRODUCTS_TO_LOAD_ZCML is a list of tuples representing ZCML files to load,
-# and which products to load them from.  PRODUCTS_TO_INSTALL is a list
-# representing products to install.  A subtle difference in these lists is that
-# in PRODUCTS_TO_LOAD_ZCML, products are specified as actual modules, whereas
-# in PRODUCTS_TO_INSTALL, products are specified as strings.
-#
-#   import Products.RhaptosBugTrackingTool
-#   from Products.RhaptosTest import base
-#
-#   base.PRODUCTS_TO_LOAD_ZCML = [('configure.zcml', Products.RhaptosBugTrackingTool),]
-#   base.PRODUCTS_TO_INSTALL = ['RhaptosBugTrackingTool']
-#
-#   class TestRhaptosBugTrackingTool(base.RhaptosTestCase):
-#       def test_pass(self):
-#           pass
+class RhaptosTestCase(PloneTestCase):
 
-PRODUCTS_TO_LOAD_ZCML = []
-PRODUCTS_TO_INSTALL = []
-
-
-class RhaptosTestCase(PloneTestCase.PloneTestCase):
+    # products_to_load_zcml is a list of tuples representing ZCML files to load,
+    # and which products to load them from.  products_to_install is a list
+    # representing products to install.  A subtle difference in these lists is that
+    # in products_to_load_zcml, products are specified as actual modules, whereas
+    # in products_to_install, products are specified as strings.
+    products_to_load_zcml = []
+    products_to_install = []
 
     def setUp(self):
         fiveconfigure.debug_mode = True
-        for zcml_file, product in PRODUCTS_TO_LOAD_ZCML:
+        for zcml_file, product in self.products_to_load_zcml:
             zcml.load_config(zcml_file, product)
-        for product in PRODUCTS_TO_INSTALL:
+        for product in self.products_to_install:
             ZopeTestCase.installProduct(product)
         fiveconfigure.debug_mode = False
 
