@@ -56,17 +56,13 @@ PRODUCTS_TO_INSTALL = []
 
 class RhaptosTestCase(PloneTestCase.PloneTestCase):
 
-    class layer(PloneSite):
+    def setUp(self):
+        fiveconfigure.debug_mode = True
+        for zcml_file, product in PRODUCTS_TO_LOAD_ZCML:
+            zcml.load_config(zcml_file, product)
+        for product in PRODUCTS_TO_INSTALL:
+            ZopeTestCase.installProduct(product)
+        fiveconfigure.debug_mode = False
 
-        @classmethod
-        def setUp(cls):
-            fiveconfigure.debug_mode = True
-            for zcml_file, product in PRODUCTS_TO_LOAD_ZCML:
-                zcml.load_config(zcml_file, product)
-            for product in PRODUCTS_TO_INSTALL:
-                ZopeTestCase.installProduct(product)
-            fiveconfigure.debug_mode = False
-
-        @classmethod
-        def tearDown(cls):
-            pass
+    def tearDown(self):
+        pass
