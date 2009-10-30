@@ -19,7 +19,18 @@
 #                   www.enfoldsystems.com                                      #
 #                   info@enfoldsystems.com                                     #
 #------------------------------------------------------------------------------#
-"""Base class from which other Rhaptos unit test classes inherit.
+"""Test setup for integration and functional tests.
+
+When we import PloneTestCase and then call setupPloneSite(), all of Plone's
+products are loaded, and a Plone site will be created. This happens at module
+level, which makes it faster to run each test, but slows down test runner
+startup.
+
+I copied and adapted this file from Martin Aspeli's excellent documentation
+here:
+
+http://plone.org/documentation/tutorial/testing/writing-a-plonetestcase-unit-integration-test
+
 $Id: $
 """
 
@@ -27,30 +38,83 @@ $Id: $
 # Subtle: Monkey patch zope.testing by importing this module:
 import patch_zope_testing
 
-from Products.CMFPlone.tests.PloneTestCase import PloneTestCase
-from Products.Five import fiveconfigure
 from Products.Five import zcml
-from Products.PloneTestCase.layer import PloneSite
-from Testing import ZopeTestCase
+from Products.Five import fiveconfigure
+from Products.PloneTestCase import PloneTestCase as ptc
+from Products.PloneTestCase.layer import onsetup
+from Testing import ZopeTestCase as ztc
+
+from config import products_to_load_zcml
+from config import products_to_install
 
 
-class RhaptosTestCase(PloneTestCase):
+#
+# When ZopeTestCase configures Zope, it will *not* auto-load products in 
+# Products/. Instead, we have to use a statement such as:
+# 
+#   ztc.installProduct('SimpleAttachment')
+# 
+# This does *not* apply to products in eggs and Python packages (i.e. not in
+# the Products.*) namespace. For that, see below.
+# 
+# All of Plone's products are already set up by PloneTestCase.
+# 
 
-    # products_to_load_zcml is a list of tuples representing ZCML files to load,
-    # and which products to load them from.  products_to_install is a list
-    # representing products to install.  A subtle difference in these lists is that
-    # in products_to_load_zcml, products are specified as actual modules, whereas
-    # in products_to_install, products are specified as strings.
-    products_to_load_zcml = []
-    products_to_install = []
 
-    def setUp(self):
-        fiveconfigure.debug_mode = True
-        for zcml_file, product in self.products_to_load_zcml:
-            zcml.load_config(zcml_file, product)
-        for product in self.products_to_install:
-            ZopeTestCase.installProduct(product)
-        fiveconfigure.debug_mode = False
+@onsetup
+def setup_product():
+    """Set up the package and its dependencies.
+    
+    The @onsetup decorator causes the execution of this body to be deferred
+    until the setup of the Plone site testing layer. We could have created our
+    own layer, but this is the easiest way for Plone integration tests.
+    """
+    
+    # Load the ZCML configuration for the example.tests package.
+    # This can of course use <include /> to include other packages.
 
-    def tearDown(self):
-        pass
+    fiveconfigure.debug_mode = True
+    for zcml_file, product in products_to_load_zcml:
+        zcml.load_config(zcml_file, product)
+    fiveconfigure.debug_mode = False
+    
+    # We need to tell the testing framework that these products
+    # should be available. This can't happen until after we have loaded
+    # the ZCML. Thus, we do it here. Note the use of installPackage() instead
+    # of installProduct().
+    # 
+    # This is *only* necessary for packages outside the Products.* namespace
+    # which are also declared as Zope 2 products, using 
+    # <five:registerPackage /> in ZCML.
+
+    # We may also need to load dependencies, e.g.:
+    # 
+    #   ztc.installPackage('borg.localrole')
+    # 
+
+    for product in products_to_install:
+        ztc.installProduct(product)
+
+
+# The order here is important: We first call the (deferred) function which
+# installs the products we need for this product. Then, we let PloneTestCase 
+# set up this product on installation.
+
+
+setup_product()
+ptc.setupPloneSite(products=products_to_install)
+
+
+class RhaptosTestCase(ptc.PloneTestCase):
+    """We use this base class for all the tests in this package. If necessary,
+    we can put common utility or setup code in here. This applies to unit 
+    test cases.
+    """
+    pass
+
+
+class RhaptosFunctionalTestCase(ptc.FunctionalTestCase):
+    """We use this class for functional integration tests that use doctest
+    syntax. Again, we can put basic common utility or setup code in here.
+    """
+    pass
