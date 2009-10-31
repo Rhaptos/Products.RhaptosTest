@@ -26,9 +26,7 @@ products are loaded, and a Plone site will be created. This happens at module
 level, which makes it faster to run each test, but slows down test runner
 startup.
 
-I copied and adapted this file from Martin Aspeli's excellent documentation
-here:
-
+I adapted this file from Martin Aspeli's excellent documentation here:
 http://plone.org/documentation/tutorial/testing/writing-a-plonetestcase-unit-integration-test
 
 $Id: $
@@ -46,6 +44,7 @@ from Testing import ZopeTestCase as ztc
 
 from config import products_to_load_zcml
 from config import products_to_install
+from config import products_extension_profiles
 
 
 #
@@ -100,9 +99,9 @@ def setup_product():
 # installs the products we need for this product. Then, we let PloneTestCase 
 # set up this product on installation.
 
-
 setup_product()
-ptc.setupPloneSite(products=products_to_install)
+ptc.setupPloneSite(products=products_to_install,
+                   extension_profiles=products_extension_profiles)
 
 
 class RhaptosTestCase(ptc.PloneTestCase):

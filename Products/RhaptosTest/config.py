@@ -26,3 +26,4 @@ $Id: $
 
 products_to_load_zcml = []
 products_to_install = []
+products_extension_profiles = []
