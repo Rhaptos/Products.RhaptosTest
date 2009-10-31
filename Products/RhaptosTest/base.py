@@ -36,6 +36,7 @@ $Id: $
 # Subtle: Monkey patch zope.testing by importing this module:
 import patch_zope_testing
 
+from Products.CMFCore.utils import getToolByName
 from Products.Five import zcml
 from Products.Five import fiveconfigure
 from Products.PloneTestCase import PloneTestCase as ptc
@@ -104,7 +105,20 @@ ptc.setupPloneSite(products=products_to_install,
                    extension_profiles=products_extension_profiles)
 
 
-class RhaptosTestCase(ptc.PloneTestCase):
+class BaseTestCase(object):
+    """Base test case class from which the other test case classes inherit."""
+
+    def create_content(self, context, portal_type, id, **kwargs):
+        ttool = getToolByName(context, 'portal_types')
+        fti = ttool.getTypeInfo(portal_type)
+        fti.constructInstance(context, id, **kwargs)
+        obj = getattr(context.aq_inner.aq_explicit, id)
+        cat = getToolByName(context, 'portal_catalog')
+        cat.indexObject(obj)
+        return obj
+
+
+class RhaptosTestCase(ptc.PloneTestCase, BaseTestCase):
     """We use this base class for all the tests in this package. If necessary,
     we can put common utility or setup code in here. This applies to unit 
     test cases.
@@ -112,7 +126,7 @@ class RhaptosTestCase(ptc.PloneTestCase):
     pass
 
 
-class RhaptosFunctionalTestCase(ptc.FunctionalTestCase):
+class RhaptosFunctionalTestCase(ptc.FunctionalTestCase, BaseTestCase):
     """We use this class for functional integration tests that use doctest
     syntax. Again, we can put basic common utility or setup code in here.
     """
